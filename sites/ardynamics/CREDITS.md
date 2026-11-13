@@ -1,6 +1,6 @@
 # Credits
 
-The scene geometry, shaders, and copy in this site are original to this project. Nothing here is a redistributed 3D model.
+The scene shaders, the temple, the saucer, the turtle, the kelp, and the copy in this site are original. The rigged fish and the scanned shell are the downloads named below.
 
 ## Techniques adapted from ThreeUI Community
 
@@ -27,6 +27,8 @@ CC0, Poly Haven (https://polyhaven.com). No attribution is required; these are n
 - `public/hdri/sunset.hdr` — Kiara 1 Dawn, 1K HDR, an open sky so the horizon stays ocean. https://polyhaven.com/a/kiara_1_dawn
 - `public/textures/sand_*.jpg` — Aerial Sand, 1K. https://polyhaven.com/a/aerial_sand
 - `public/textures/rock_*.jpg` — Rock Face, 1K. https://polyhaven.com/a/rock_face
+- `public/textures/marble_*.jpg` — Marble 012, 1K albedo, OpenGL normal, and roughness. CC0, ambientCG. https://ambientcg.com/view?id=Marble012
+- `public/textures/gold_*.jpg` — Metal 034, 1K albedo, OpenGL normal, roughness, and metalness, used on the temple trim. CC0, ambientCG. https://ambientcg.com/view?id=Metal034
 
 ## Sea-life models
 
@@ -35,7 +37,7 @@ CC0 1.0, Quaternius, via the fan mirror at https://github.com/trebeljahr/quatern
 - Blue tang, clownfish, yellow tang, parrotfish: cute fish pack, skinned, clip `Fish_Armature|Swimming_Normal`
 - Manta ray, whale, shark, dolphin: animated fish pack, skinned, clip `Armature|Swim`
 
-These are stylized low-poly models, not photogrammetry. They are the rigged CC0 sea life that could be fetched without an account. No CC0 rigged turtle or jellyfish GLB was reachable from Poly Haven, the Quaternius packs, or unauthenticated Sketchfab.
+These are stylized low-poly models, not photogrammetry. They are the rigged CC0 sea life that could be fetched without an account. No CC0 rigged turtle or jellyfish GLB was reachable from Poly Haven, the Quaternius packs, or unauthenticated Sketchfab, so the turtle, the jellyfish, the branching coral, and the kelp are original meshes. The dolphin file is on disk and is not placed in the scene.
 
 ## Scanned shell
 
@@ -49,4 +51,4 @@ CC0, Poly Haven. Lambis shell photogrammetry, 1K glTF. https://polyhaven.com/a/l
 - @react-three/fiber — MIT
 - postprocessing and @react-three/postprocessing — MIT
 
-No Poly Pizza, Quaternius, Kenney, or other downloaded models. Creatures, kelp, coral, the craft, and the city are procedural geometry. The research notes in `RESEARCH.md` name the ocean-shading papers and demos the lighting is aimed at. Those projects are not included in this build.
+The research notes in `RESEARCH.md` name the ocean-shading papers and demos the lighting is aimed at. Those projects are not included in this build.

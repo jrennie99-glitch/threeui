@@ -489,6 +489,47 @@ void main() {
 }
 `;
 
+export const VOL_RAY_VERT = /* glsl */ `
+varying vec3 vWorld;
+void main() {
+  vec4 world = modelMatrix * vec4(position, 1.0);
+  vWorld = world.xyz;
+  gl_Position = projectionMatrix * viewMatrix * world;
+}
+`;
+
+export const VOL_RAY_FRAG = /* glsl */ `
+precision highp float;
+uniform float uTime;
+varying vec3 vWorld;
+float hash(vec3 p) {
+  return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
+}
+float noise(vec3 p) {
+  vec3 i = floor(p);
+  vec3 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float n = mix(hash(i), hash(i + vec3(1.0, 0.0, 0.0)), f.x);
+  n = mix(n, hash(i + vec3(0.0, 1.0, 0.2)), f.y);
+  return mix(n, hash(i + vec3(0.2, 0.0, 1.0)), f.z);
+}
+void main() {
+  vec3 p = vWorld;
+  float warp = noise(p * vec3(0.045, 0.012, 0.04) + vec3(uTime * 0.015, 0.0, -uTime * 0.01));
+  float a = sin(p.x * 0.09 + warp * 5.2);
+  float b = sin(p.z * 0.061 + warp * 3.4 + 1.7);
+  float c = sin((p.x * 0.7 + p.z) * 0.04 + warp * 2.4);
+  float shaft = smoothstep(0.62, 0.96, a * 0.5 + 0.5);
+  shaft *= smoothstep(0.45, 0.9, b * 0.5 + 0.5);
+  shaft += smoothstep(0.78, 0.98, c * 0.5 + 0.5) * 0.35;
+  shaft *= 0.35 + noise(p * vec3(0.07, 0.018, 0.05) + uTime * 0.02);
+  shaft *= exp(clamp(p.y, -42.0, -0.4) * 0.035);
+  float alpha = shaft * smoothstep(-42.0, -3.0, p.y) * 0.2;
+  if (alpha < 0.02) discard;
+  gl_FragColor = vec4(vec3(0.72, 0.9, 0.8) * (0.3 + shaft), alpha);
+}
+`;
+
 export const GLYPH_VERT = /* glsl */ `
 varying vec2 vUv;
 varying vec3 vWorld;
@@ -616,15 +657,18 @@ uniform float uTime;
 varying vec3 vLocal;
 void main() {
   float down = clamp(-vLocal.y / 4.1, 0.0, 1.0);
-  float width = mix(0.18, 1.45, down);
+  float width = mix(0.16, 1.7, down);
   float r = length(vLocal.xz) / width;
   if (r > 1.0) discard;
-  float core = pow(1.0 - r, 1.7);
-  float fall = 1.0 - down;
-  float flick = 0.86 + 0.14 * sin(uTime * 5.0 + vLocal.y * 2.0);
-  float a = core * fall * flick;
-  vec3 col = mix(vec3(0.35, 0.78, 1.0), vec3(0.9, 0.97, 1.0), core);
-  gl_FragColor = vec4(col * (0.7 + core), a);
+  float core = pow(1.0 - r, 1.45);
+  float fall = 1.0 - down * 0.72;
+  float flick = 0.82 + 0.18 * sin(uTime * 6.0 + vLocal.y * 3.4);
+  float streak = fract(sin(dot(vLocal.xz * 14.0, vec2(12.9898, 78.233)) + vLocal.y * 2.2 + uTime * 1.7) * 43758.5453);
+  float motes = smoothstep(0.78, 0.98, streak) * (1.0 - down);
+  float a = core * fall * flick + motes * 0.45;
+  vec3 col = mix(vec3(0.25, 0.62, 1.0), vec3(0.92, 0.98, 1.0), core);
+  col += vec3(0.7, 0.95, 1.0) * motes;
+  gl_FragColor = vec4(col * (0.55 + core), clamp(a, 0.0, 1.0));
 }
 `;
 

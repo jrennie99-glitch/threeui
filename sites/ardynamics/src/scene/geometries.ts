@@ -130,7 +130,7 @@ export function createFanCoral(): THREE.BufferGeometry {
 }
 
 export function createRockGeometry(): THREE.BufferGeometry {
-  const geo = new THREE.IcosahedronGeometry(1, 3);
+  const geo = new THREE.IcosahedronGeometry(1, 4);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);

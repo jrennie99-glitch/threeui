@@ -1,4 +1,4 @@
-import { Component, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, Noise, ToneMapping, Vignette } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
@@ -69,7 +69,7 @@ function Rig({ target }: { target: THREE.WebGLRenderTarget }) {
     fog.color.copy(shared.uFogColor.value);
     fog.density = shared.uFogDensity.value;
     scene.background = y > 0.35 && shared.hdr ? shared.hdr : shared.uFogColor.value;
-    scene.environmentIntensity = y > 0.2 ? 1.2 : Math.max(0.62, Math.exp(y * 0.02));
+    scene.environmentIntensity = y > 0.2 ? 1.2 : y < -48 ? 0.42 : Math.max(0.62, Math.exp(y * 0.02));
     ufoAt(dive.time, dive.smooth, shared.uUfoPos.value);
     shared.uDetail.value = quality.detail;
 
@@ -171,14 +171,26 @@ function SunsetField() {
 }
 
 function Grade() {
-  const bloom = <Bloom intensity={0.42} luminanceThreshold={0.72} mipmapBlur luminanceSmoothing={0.18} />;
+  const [deep, setDeep] = useState(false);
+  useFrame(() => {
+    const next = dive.cameraY < -40;
+    setDeep((current) => (current === next ? current : next));
+  });
+  const bloom = <Bloom intensity={deep ? 0.18 : 0.36} luminanceThreshold={0.86} mipmapBlur luminanceSmoothing={0.2} />;
   const tail = (
     <>
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-      <Vignette eskil={false} offset={0.18} darkness={0.78} />
-      <Noise opacity={0.16} premultiply />
+      <Vignette eskil={false} offset={0.22} darkness={deep ? 0.45 : 0.62} />
+      <Noise opacity={0.1} premultiply />
     </>
   );
+  if (deep) {
+    return (
+      <EffectComposer multisampling={0} enableNormalPass={false} depthBuffer>
+        {tail}
+      </EffectComposer>
+    );
+  }
   if (!quality.dof) {
     return (
       <EffectComposer multisampling={0} enableNormalPass={false} depthBuffer>

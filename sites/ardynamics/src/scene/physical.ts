@@ -123,15 +123,21 @@ export function physicalSkin(options: SkinOptions): THREE.MeshPhysicalMaterial {
       )
       .replace(
         "#include <opaque_fragment>",
-        `float depth = clamp(-min(vAbsorbPos.y, 0.0), 0.0, 14.0);
+        `        float depth = clamp(-min(vAbsorbPos.y, 0.0), 0.0, 16.0);
+        float city = smoothstep(-42.0, -60.0, vAbsorbPos.y);
+        depth *= mix(1.0, 0.22, city);
         vec3 absorb = vec3(exp(-depth * 0.11), exp(-depth * 0.035), exp(-depth * 0.02));
         float cau = 0.0;
         if (vAbsorbPos.y < -0.2) {
-          cau = pow(abs(sin(vAbsorbPos.x * 1.6 + uTime * 0.7) * sin(vAbsorbPos.z * 1.25 - uTime * 0.55)), 7.0);
-          cau += pow(abs(sin(vAbsorbPos.x * 3.2 - uTime) * sin(vAbsorbPos.z * 2.6 + uTime * 0.8)), 10.0);
-          cau *= smoothstep(0.0, 0.45, normal.y) * exp(-depth * 0.045);
+          vec2 uv = vAbsorbPos.xz * 0.37;
+          float w1 = sin(uv.x * 2.1 + uv.y * 0.7 + uTime * 0.55);
+          float w2 = sin(uv.y * 1.8 - uv.x * 0.45 - uTime * 0.38);
+          float w3 = sin((uv.x + uv.y) * 1.25 + uTime * 0.22);
+          cau = pow(clamp(w1 * w2 * 0.5 + 0.5, 0.0, 1.0), 2.4);
+          cau += pow(clamp(w2 * w3 * 0.5 + 0.55, 0.0, 1.0), 3.2) * 0.55;
+          cau *= smoothstep(0.05, 0.55, normal.y) * exp(-depth * 0.04);
         }
-        outgoingLight = outgoingLight * absorb + vec3(0.55, 0.82, 0.75) * cau * 0.16;
+        outgoingLight = outgoingLight * absorb + vec3(0.62, 0.9, 0.82) * cau * 0.28;
         #include <opaque_fragment>`,
       );
   };

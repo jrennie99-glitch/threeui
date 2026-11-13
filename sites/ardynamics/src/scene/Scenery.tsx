@@ -5,14 +5,14 @@ import { quality } from "../quality";
 import { mulberry32 } from "../dive";
 import { shared, sceneRefs } from "./shared";
 import { physicalSkin, repeat } from "./physical";
+import { createArch, createCapital, createDome, createDrum, createFlutedColumn, createStairs } from "./architecture";
+import { createBranchCoral } from "./geometries";
 import {
   BEAM_FRAG,
   GLASS_VERT,
   GLOW_FRAG,
-  GLYPH_FRAG,
-  GLYPH_VERT,
-  RAY_FRAG,
-  RAY_VERT,
+  VOL_RAY_FRAG,
+  VOL_RAY_VERT,
   SAND_FRAG,
   SAND_VERT,
   SKY_FRAG,
@@ -180,33 +180,20 @@ export function GodRays() {
     () =>
       new THREE.ShaderMaterial({
         uniforms: { uTime: shared.uTime },
-        vertexShader: RAY_VERT,
-        fragmentShader: RAY_FRAG,
+        vertexShader: VOL_RAY_VERT,
+        fragmentShader: VOL_RAY_FRAG,
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        side: THREE.DoubleSide,
+        side: THREE.BackSide,
       }),
     [],
   );
   useEffect(() => () => mat.dispose(), [mat]);
-  const planes = useMemo(() => {
-    const rand = mulberry32(31);
-    return Array.from({ length: quality.rays }, (_, i) => ({
-      position: [(i - quality.rays / 2) * 3.2 + (rand() - 0.5) * 2, -8 - (i % 3) * 4, -10 - i * 1.6] as [number, number, number],
-      rotation: [ -0.15, (rand() - 0.5) * 0.5, 0] as [number, number, number],
-      scale: [3.2 + rand() * 1.4, 16 + rand() * 6, 1] as [number, number, number],
-    }));
-  }, []);
   return (
-    <group>
-      {planes.map((p, i) => (
-        <mesh key={i} position={p.position} rotation={p.rotation} scale={p.scale} frustumCulled={false} renderOrder={3}>
-          <planeGeometry args={[1, 1]} />
-          <primitive object={mat} attach="material" />
-        </mesh>
-      ))}
-    </group>
+    <mesh position={[0, -22, -14]} frustumCulled={false} renderOrder={3} material={mat}>
+      <boxGeometry args={[70, 48, 64]} />
+    </mesh>
   );
 }
 
@@ -299,32 +286,53 @@ export function Atlantis() {
       }),
     [],
   );
-  const glyph = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        uniforms: {
-          uTime: shared.uTime,
-          uFogColor: shared.uFogColor,
-          uFogDensity: shared.uFogDensity,
-        },
-        vertexShader: GLYPH_VERT,
-        fragmentShader: GLYPH_FRAG,
-        transparent: true,
-        depthWrite: false,
-        side: THREE.DoubleSide,
-      }),
-    [],
-  );
   const stone = useMemo(
     () =>
       physicalSkin({
         sway: 0,
-        color: "#8e97a0",
+        color: "#f4f1ea",
+        roughness: 0.42,
+        metalness: 0.02,
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.22,
+        sheen: 0.18,
+        sheenColor: "#f7f3ea",
+      }),
+    [],
+  );
+  const windowMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#2a1c10",
+        emissive: new THREE.Color("#ffb15a"),
+        emissiveIntensity: 2.4,
+        roughness: 0.35,
+      }),
+    [],
+  );
+  const coralGeo = useMemo(() => createBranchCoral(), []);
+  const coralMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#6e5348",
         roughness: 0.62,
-        metalness: 0.08,
-        clearcoat: 0.2,
-        clearcoatRoughness: 0.3,
-        vertexColors: true,
+        metalness: 0.02,
+      }),
+    [],
+  );
+  const crystalMat = useMemo(
+    () =>
+      physicalSkin({
+        sway: 0,
+        color: "#e7fbff",
+        roughness: 0.04,
+        transmission: 0.82,
+        thickness: 0.5,
+        ior: 1.6,
+        emissive: "#7ee8f2",
+        emissiveIntensity: 0.65,
+        attenuationColor: "#9af6ff",
+        attenuationDistance: 0.4,
       }),
     [],
   );
@@ -337,81 +345,167 @@ export function Atlantis() {
       }),
     [],
   );
-  const stoneGeo = useMemo(() => {
-    const g = new THREE.CylinderGeometry(0.28, 0.34, 3.2, 24);
+  const columnGeo = useMemo(() => createFlutedColumn(4.6, 0.38, 20), []);
+  const capitalGeo = useMemo(() => createCapital(), []);
+  const stairGeo = useMemo(() => createStairs(8, 7.2), []);
+  const domeGeo = useMemo(() => createDome(3.15), []);
+  const drumGeo = useMemo(() => createDrum(3.35, 1.6), []);
+  const archSpan = 2 * 5.6 * Math.sin(Math.PI / 10);
+  const archGeo = useMemo(() => createArch(archSpan), []);
+  const crystalGeo = useMemo(() => {
+    const g = new THREE.ConeGeometry(0.28, 3.6, 5);
+    g.translate(0, 1.8, 0);
     const n = g.attributes.position.count;
-    g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(n * 3).fill(0.75), 3));
     g.setAttribute("aTint", new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
     g.setAttribute("aPhase", new THREE.BufferAttribute(new Float32Array(n), 1));
     return g;
   }, []);
+  const columns = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, i) => {
+        const a = (i / 10) * Math.PI * 2;
+        return [Math.cos(a) * 5.6, 2.5, Math.sin(a) * 5.6] as [number, number, number];
+      }),
+    [],
+  );
   useEffect(() => () => {
     glass.dispose();
     glassWarm.dispose();
-    glyph.dispose();
     stone.dispose();
     orb.dispose();
-    stoneGeo.dispose();
-  }, [glass, glassWarm, glyph, orb, stone, stoneGeo]);
+    crystalMat.dispose();
+    windowMat.dispose();
+    coralMat.dispose();
+    coralGeo.dispose();
+    columnGeo.dispose();
+    capitalGeo.dispose();
+    stairGeo.dispose();
+    domeGeo.dispose();
+    drumGeo.dispose();
+    archGeo.dispose();
+    crystalGeo.dispose();
+  }, [archGeo, capitalGeo, columnGeo, coralGeo, coralMat, crystalGeo, crystalMat, domeGeo, drumGeo, glass, glassWarm, orb, stairGeo, stone, windowMat]);
 
-  const domes = useMemo(() => {
-    const rand = mulberry32(51);
-    const list: { p: [number, number, number]; r: number; warm: boolean }[] = [
-      { p: [0, 2.3, 0], r: 3.6, warm: false },
-    ];
-    for (let i = 0; i < 6; i += 1) {
-      const a = (i / 6) * Math.PI * 2 + 0.35;
-      list.push({
-        p: [Math.cos(a) * 8.2, 1.15 + rand() * 0.4, Math.sin(a) * 8.2],
-        r: 1.35 + rand() * 0.7,
-        warm: i % 2 === 0,
-      });
-    }
-    return list;
-  }, []);
-  const pillars = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => {
-      const a = (i / 12) * Math.PI * 2;
-      return [Math.cos(a) * 5.4, 1.6, Math.sin(a) * 5.4] as [number, number, number];
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    let alive = true;
+    void Promise.all([
+      loader.loadAsync("/textures/marble_diff.jpg"),
+      loader.loadAsync("/textures/marble_nor.jpg"),
+      loader.loadAsync("/textures/marble_rough.jpg"),
+      loader.loadAsync("/textures/gold_diff.jpg"),
+      loader.loadAsync("/textures/gold_nor.jpg"),
+      loader.loadAsync("/textures/gold_rough.jpg"),
+      loader.loadAsync("/textures/gold_metal.jpg"),
+    ]).then(([diff, nor, rough, gold, goldNor, goldRough, goldMetal]) => {
+      if (!alive) return;
+      repeat(diff, 1.6, true);
+      repeat(nor, 1.6);
+      repeat(rough, 1.6);
+      stone.map = diff;
+      stone.normalMap = nor;
+      stone.roughnessMap = rough;
+      stone.normalScale.set(1.15, 1.15);
+      stone.color.set("#ffffff");
+      stone.roughness = 0.46;
+      stone.envMapIntensity = 1.35;
+      stone.needsUpdate = true;
+      glass.map = diff;
+      glass.normalMap = nor;
+      glass.roughnessMap = rough;
+      glass.normalScale.set(0.8, 0.8);
+      glass.color.set("#f7f4ee");
+      glass.envMapIntensity = 1.2;
+      glass.needsUpdate = true;
+      repeat(gold, 2, true);
+      repeat(goldNor, 2);
+      repeat(goldRough, 2);
+      repeat(goldMetal, 2);
+      glassWarm.map = gold;
+      glassWarm.normalMap = goldNor;
+      glassWarm.roughnessMap = goldRough;
+      glassWarm.metalnessMap = goldMetal;
+      glassWarm.metalness = 1;
+      glassWarm.roughness = 0.32;
+      glassWarm.color.set("#fff4d2");
+      glassWarm.envMapIntensity = 1.8;
+      glassWarm.needsUpdate = true;
     });
-  }, []);
-
+    return () => {
+      alive = false;
+    };
+  }, [glass, glassWarm, stone]);
   useLayoutEffect(() => {
     stampSkin(root.current);
   }, []);
   return (
     <group ref={root} position={[0, -63.2, 0]}>
-      {domes.map((d, i) => (
-        <group key={i} position={d.p}>
-          <mesh material={d.warm ? glassWarm : glass}>
-            <sphereGeometry args={[d.r, 48, 32]} />
+      <ambientLight color="#d5e7f4" intensity={0.07} />
+      <hemisphereLight color="#d5eaff" groundColor="#142838" intensity={0.1} />
+      <pointLight position={[0, 9.4, 1.5]} intensity={180} distance={28} decay={2} color="#ffe4bf" />
+      <pointLight position={[5.5, 3.2, 6]} intensity={70} distance={16} decay={2} color="#9adfff" />
+      <pointLight position={[-4.5, 3.4, 5]} intensity={55} distance={14} decay={2} color="#ffc48a" />
+      <mesh material={stone} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <circleGeometry args={[14, 72]} />
+      </mesh>
+      <mesh material={stone} position={[0, 0.28, 0]}>
+        <cylinderGeometry args={[6.5, 7.1, 0.5, 48]} />
+      </mesh>
+      <mesh geometry={stairGeo} material={stone} position={[0, 0.2, 5.6]} dispose={null} />
+      <mesh geometry={drumGeo} material={stone} position={[0, 5.5, 0]} dispose={null} />
+      <mesh geometry={domeGeo} material={glass} position={[0, 6.5, 0]} dispose={null} />
+      <mesh material={glassWarm} position={[0, 6.28, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[3.22, 0.14, 16, 72]} />
+      </mesh>
+      <mesh material={glassWarm} position={[0, 4.65, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[3.42, 0.07, 12, 64]} />
+      </mesh>
+      {Array.from({ length: 14 }, (_, i) => {
+        const a = (i / 14) * Math.PI * 2;
+        return (
+          <mesh key={`win-${i}`} material={windowMat} position={[Math.cos(a) * 3.48, 5.55, Math.sin(a) * 3.48]} rotation={[0, -a, 0]}>
+            <boxGeometry args={[0.34, 0.78, 0.1]} />
           </mesh>
-          <mesh material={glassWarm} rotation={[Math.PI / 2, 0, 0]} position={[0, d.r * 0.15, 0]}>
-            <torusGeometry args={[d.r * 1.05, d.r * 0.035, 12, 48]} />
+        );
+      })}
+      {columns.map((p, i) => (
+        <group key={i} position={p}>
+          <mesh geometry={columnGeo} material={stone} dispose={null} />
+          <mesh geometry={capitalGeo} material={glassWarm} position={[0, 2.45, 0]} dispose={null} />
+          <mesh material={glassWarm} position={[0, 2.05, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[0.46, 0.045, 8, 24]} />
           </mesh>
-          <mesh material={glyph} position={[0, d.r * 0.15, 0]}>
-            <cylinderGeometry args={[d.r * 1.02, d.r * 1.02, d.r * 0.85, 20, 1, true]} />
-          </mesh>
+          <mesh geometry={coralGeo} material={coralMat} position={[0.55, -2.15, 0.2]} rotation={[0.4, i * 0.7, 0.2]} scale={0.42} />
         </group>
       ))}
-      {pillars.map((p, i) => (
-        <mesh key={i} geometry={stoneGeo} material={stone} position={p} dispose={null} />
-      ))}
-      <mesh material={glyph} position={[0, 4.2, 0]}>
-        <boxGeometry args={[0.7, 5.4, 0.12]} />
-      </mesh>
-      <mesh material={glyph} position={[2.2, 2.4, -1.4]} rotation={[0, 0.6, 0]}>
-        <boxGeometry args={[0.45, 3.2, 0.1]} />
-      </mesh>
-      <mesh material={glyph} position={[-2.4, 2.2, 1.2]} rotation={[0, -0.4, 0]}>
-        <boxGeometry args={[0.4, 2.8, 0.1]} />
-      </mesh>
-      <mesh material={orb} position={[0, 7.3, 0]}>
-        <sphereGeometry args={[0.28, 16, 16]} />
-      </mesh>
-      <mesh position={[0, 7.3, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.55, 0.025, 8, 24]} />
-        <primitive object={orb} attach="material" />
+      {[0, 2, 4, 6, 8].map((i) => {
+        const a = (i / 10) * Math.PI * 2 + Math.PI / 10;
+        const mid = 5.6 * Math.cos(Math.PI / 10);
+        return (
+          <mesh
+            key={`arch-${i}`}
+            geometry={archGeo}
+            material={stone}
+            position={[Math.cos(a) * mid, 5.2, Math.sin(a) * mid]}
+            rotation={[0, -a, 0]}
+            dispose={null}
+          />
+        );
+      })}
+      {columns.map((p, i) => {
+        const len = Math.hypot(p[0], p[2]) || 1;
+        return (
+          <mesh
+            key={`crystal-${i}`}
+            geometry={crystalGeo}
+            material={crystalMat}
+            position={[(p[0] / len) * 7.6, 0.05, (p[2] / len) * 7.6]}
+            dispose={null}
+          />
+        );
+      })}
+      <mesh material={orb} position={[0, 9.55, 0]}>
+        <sphereGeometry args={[0.22, 16, 16]} />
       </mesh>
     </group>
   );
@@ -436,8 +530,21 @@ export function Ufo() {
     [],
   );
   const hullGeo = useMemo(() => {
-    const g = new THREE.SphereGeometry(1.65, 32, 16);
-    g.scale(1, 0.3, 1);
+    const pts = [
+      new THREE.Vector2(0.02, 0.2),
+      new THREE.Vector2(0.42, 0.3),
+      new THREE.Vector2(0.95, 0.2),
+      new THREE.Vector2(1.38, 0.07),
+      new THREE.Vector2(1.74, -0.02),
+      new THREE.Vector2(1.62, -0.11),
+      new THREE.Vector2(1.12, -0.17),
+      new THREE.Vector2(0.48, -0.12),
+      new THREE.Vector2(0.02, -0.06),
+    ];
+    const g = new THREE.LatheGeometry(pts, 72);
+    const n = g.attributes.position.count;
+    g.setAttribute("aTint", new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
+    g.setAttribute("aPhase", new THREE.BufferAttribute(new Float32Array(n), 1));
     return g;
   }, []);
   useEffect(() => () => {
@@ -458,41 +565,112 @@ export function Ufo() {
     g.scale.setScalar(1.55);
   }, -9);
   const lights = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const beamDust = useMemo(() => {
+    const data = new Float32Array(180 * 3);
+    for (let i = 0; i < 180; i += 1) {
+      const y = (i / 180) * -9;
+      const r = (1 - i / 180) * 1.3 * Math.random();
+      const a = Math.random() * Math.PI * 2;
+      data[i * 3] = Math.cos(a) * r;
+      data[i * 3 + 1] = y;
+      data[i * 3 + 2] = Math.sin(a) * r;
+    }
+    return data;
+  }, []);
   return (
     <group ref={group}>
       <mesh geometry={hullGeo} material={hullMat} />
-      <mesh material={hullMat} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.7, 0.085, 12, 40]} />
+      <mesh material={hullMat} position={[0, 0.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[1.15, 0.02, 8, 48]} />
       </mesh>
-      <mesh material={domeMat} position={[0, 0.28, 0]}>
-        <sphereGeometry args={[0.7, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      <mesh material={hullMat} position={[0, 0.02, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[1.52, 0.018, 8, 56]} />
+      </mesh>
+      <mesh material={hullMat} position={[0, -0.08, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[1.22, 0.016, 8, 48]} />
+      </mesh>
+      <mesh material={lampMat} position={[0, -0.01, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[1.7, 0.028, 8, 64]} />
+      </mesh>
+      <mesh material={domeMat} position={[0, 0.22, 0]}>
+        <sphereGeometry args={[0.62, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
       {lights.map((i) => {
         const a = (i / lights.length) * Math.PI * 2;
         return (
-          <mesh key={i} material={lampMat} position={[Math.cos(a) * 1.52, 0.02, Math.sin(a) * 1.52]}>
-            <sphereGeometry args={[0.065, 8, 8]} />
+          <mesh key={i} material={lampMat} position={[Math.cos(a) * 1.48, 0.04, Math.sin(a) * 1.48]}>
+            <sphereGeometry args={[0.055, 10, 8]} />
           </mesh>
         );
       })}
-      <mesh material={beamMat} position={[0, -4.1, 0]}>
-        <cylinderGeometry args={[0.12, 1.45, 8.2, 18, 1, true]} />
+      <mesh material={beamMat} position={[0, -5.4, 0]}>
+        <coneGeometry args={[1.85, 10.4, 28, 1, true]} />
       </mesh>
+      <mesh material={beamMat} position={[0, -5.1, 0]}>
+        <coneGeometry args={[0.55, 9.6, 16, 1, true]} />
+      </mesh>
+      <points position={[0, -5.5, 0]}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[beamDust, 3]} />
+        </bufferGeometry>
+        <pointsMaterial color="#d7fbff" size={0.07} transparent opacity={0.85} depthWrite={false} />
+      </points>
     </group>
   );
 }
 
+function panelNormal(): THREE.CanvasTexture {
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("panel normal");
+  const image = ctx.createImageData(size, size);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const sx = x % 64;
+      const sy = y % 40;
+      let dx = 0;
+      let dy = 0;
+      if (sx < 2) dx = -0.95;
+      else if (sx > 61) dx = 0.95;
+      if (sy < 2) dy = -0.8;
+      const rivet = sx > 8 && sx < 15 && sy > 8 && sy < 15;
+      if (rivet) {
+        dx += (sx - 11.5) / 3.2;
+        dy += (sy - 11.5) / 3.2;
+      }
+      const i = (y * size + x) * 4;
+      image.data[i] = Math.max(0, Math.min(255, 128 + dx * 72));
+      image.data[i + 1] = Math.max(0, Math.min(255, 128 + dy * 72));
+      image.data[i + 2] = 255;
+      image.data[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(image, 0, 0);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(8, 3);
+  tex.colorSpace = THREE.NoColorSpace;
+  return tex;
+}
+
 function ufoMaterial(kind: number): THREE.Material {
   if (kind === 0) {
-    return physicalSkin({
+    const hull = physicalSkin({
       sway: 0,
-      color: "#9aa3ad",
-      metalness: 0.94,
-      roughness: 0.14,
+      color: "#d5dbe2",
+      metalness: 0.96,
+      roughness: 0.22,
       clearcoat: 1,
-      clearcoatRoughness: 0.06,
+      clearcoatRoughness: 0.08,
       sheen: 0,
     });
+    hull.normalMap = panelNormal();
+    hull.normalScale.set(0.35, 0.35);
+    return hull;
   }
   if (kind === 1) {
     return physicalSkin({
