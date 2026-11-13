@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { sampleRoute, ufoAt, pointerActive, dive } from "../dive";
 import { quality } from "../quality";
-import { Life } from "./Life";
+import { Wildlife } from "./Wildlife";
 import { Atlantis, Floors, GodRays, Sky, Ufo, Water } from "./Scenery";
 import { sceneRefs, shared, updateFog } from "./shared";
 
@@ -219,7 +219,7 @@ function World({ onReady }: { onReady: () => void }) {
       <Water texture={target.texture} />
       <Floors />
       <GodRays />
-      <Life />
+      <Wildlife />
       <Ufo />
       <Atlantis />
       <Compile onReady={onReady} />

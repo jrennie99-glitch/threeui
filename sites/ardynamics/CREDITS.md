@@ -28,7 +28,18 @@ CC0, Poly Haven (https://polyhaven.com). No attribution is required; these are n
 - `public/textures/sand_*.jpg` — Aerial Sand, 1K. https://polyhaven.com/a/aerial_sand
 - `public/textures/rock_*.jpg` — Rock Face, 1K. https://polyhaven.com/a/rock_face
 
-Fish, the whale, the manta, kelp, and coral are still original meshes. They are smooth lathes and displaced surfaces with physical materials (clearcoat, sheen, transmission), not faceted low-poly toys and not a downloaded creature pack. Quaternius and Kenney packs were skipped because those models are stylized and low-poly.
+## Sea-life models
+
+CC0 1.0, Quaternius, via the fan mirror at https://github.com/trebeljahr/quaternius-showcase (models remain Quaternius’s; the showcase code is not used). Pack pages: https://quaternius.com/packs/animatedfish.html and the cute fish pack on https://poly.pizza/bundle/Animated-Fish-Bundle-44zhHN1UbT
+
+- Blue tang, clownfish, yellow tang, parrotfish: cute fish pack, skinned, clip `Fish_Armature|Swimming_Normal`
+- Manta ray, whale, shark, dolphin: animated fish pack, skinned, clip `Armature|Swim`
+
+These are stylized low-poly models, not photogrammetry. They are the rigged CC0 sea life that could be fetched without an account. No CC0 rigged turtle or jellyfish GLB was reachable from Poly Haven, the Quaternius packs, or unauthenticated Sketchfab.
+
+## Scanned shell
+
+CC0, Poly Haven. Lambis shell photogrammetry, 1K glTF. https://polyhaven.com/a/lambis_shell
 
 ## Software
 

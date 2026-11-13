@@ -272,18 +272,16 @@ export function Atlantis() {
     () =>
       physicalSkin({
         sway: 0,
-        color: "#d9f7ff",
-        roughness: 0.05,
-        metalness: 0.02,
-        transmission: quality.dof ? 0.9 : 0.25,
-        thickness: 0.6,
-        ior: 1.45,
-        clearcoat: 1,
-        clearcoatRoughness: 0.06,
-        attenuationColor: "#7ee7ff",
-        attenuationDistance: 1.2,
-        emissive: "#083848",
-        emissiveIntensity: 0.25,
+        color: "#efe6d6",
+        roughness: 0.32,
+        metalness: 0.04,
+        transmission: 0.06,
+        thickness: 0.4,
+        ior: 1.5,
+        clearcoat: 0.45,
+        clearcoatRoughness: 0.18,
+        sheen: 0.2,
+        sheenColor: "#f4efe4",
       }),
     [],
   );
@@ -291,17 +289,13 @@ export function Atlantis() {
     () =>
       physicalSkin({
         sway: 0,
-        color: "#ffe6c4",
-        roughness: 0.06,
-        transmission: quality.dof ? 0.88 : 0.2,
-        thickness: 0.5,
-        ior: 1.45,
-        clearcoat: 1,
-        clearcoatRoughness: 0.08,
-        attenuationColor: "#ffd39a",
-        attenuationDistance: 1.1,
-        emissive: "#3a2410",
-        emissiveIntensity: 0.2,
+        color: "#e7d3a1",
+        roughness: 0.22,
+        metalness: 0.85,
+        clearcoat: 0.7,
+        clearcoatRoughness: 0.12,
+        emissive: "#3a2a10",
+        emissiveIntensity: 0.15,
       }),
     [],
   );
@@ -390,7 +384,10 @@ export function Atlantis() {
       {domes.map((d, i) => (
         <group key={i} position={d.p}>
           <mesh material={d.warm ? glassWarm : glass}>
-            <sphereGeometry args={[d.r, 28, 16]} />
+            <sphereGeometry args={[d.r, 48, 32]} />
+          </mesh>
+          <mesh material={glassWarm} rotation={[Math.PI / 2, 0, 0]} position={[0, d.r * 0.15, 0]}>
+            <torusGeometry args={[d.r * 1.05, d.r * 0.035, 12, 48]} />
           </mesh>
           <mesh material={glyph} position={[0, d.r * 0.15, 0]}>
             <cylinderGeometry args={[d.r * 1.02, d.r * 1.02, d.r * 0.85, 20, 1, true]} />

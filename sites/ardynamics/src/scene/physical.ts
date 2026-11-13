@@ -131,7 +131,7 @@ export function physicalSkin(options: SkinOptions): THREE.MeshPhysicalMaterial {
           cau += pow(abs(sin(vAbsorbPos.x * 3.2 - uTime) * sin(vAbsorbPos.z * 2.6 + uTime * 0.8)), 10.0);
           cau *= smoothstep(0.0, 0.45, normal.y) * exp(-depth * 0.045);
         }
-        outgoingLight = outgoingLight * absorb + vec3(0.55, 0.82, 0.75) * cau * 0.45;
+        outgoingLight = outgoingLight * absorb + vec3(0.55, 0.82, 0.75) * cau * 0.16;
         #include <opaque_fragment>`,
       );
   };
